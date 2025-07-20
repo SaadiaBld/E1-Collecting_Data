@@ -220,6 +220,8 @@ poetry.toml
 pyrightconfig.json
 
 # data files
+*.csv
+
 c1-extract_data/data
 archives/
 c1-extract_data/venv
@@ -230,3 +232,4 @@ c1-twitter-api-extract-data/data
 c1-twitter-api-extract-data/config
 c5-api_crud/config
 c5-api_crud/venv
+/home/utilisateur/Documents/devia_2425/Certif_2025/E1-collecting_data/c1-extract_data/tweets_leroymerlin_livraison.csv
