@@ -11,6 +11,12 @@ class Review(BaseModel):
     publication_date: datetime
     scrape_date: datetime
 
+
+    class Config:
+        json_encoders = {
+            datetime: lambda v: v.isoformat()
+        }
+
 class ReviewIn(BaseModel):
     review_id: str
     rating: int
@@ -18,7 +24,7 @@ class ReviewIn(BaseModel):
     author: str
     publication_date: datetime
     scrape_date: datetime
-
+    
 class ReviewUpdate(BaseModel):
     content: str
 

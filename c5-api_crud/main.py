@@ -1,8 +1,9 @@
-
+from fastapi.encoders import jsonable_encoder
 from fastapi import FastAPI, HTTPException
 from typing import List
 import bigquery_service
 from models import Review, ReviewIn, ReviewUpdate, TopicAnalysis, TopicAnalysisUpdate, Topic
+import json
 
 app = FastAPI()
 
@@ -17,12 +18,26 @@ def read_review(review_id: str):
         raise HTTPException(status_code=404, detail="Review not found")
     return review
 
+def clean_date_fields(data: dict) -> dict:
+    for field in ["publication_date", "scrape_date"]:
+        if field in data and isinstance(data[field], str):
+            data[field] = data[field].split("T")[0]  # garde uniquement YYYY-MM-DD
+    return data
+
 @app.post("/reviews", status_code=201)
 def create_review(review: ReviewIn):
-    success = bigquery_service.create_review(review.dict())
-    if not success:
-        raise HTTPException(status_code=400, detail="Error creating review")
-    return review
+    print(f"--- DEBUG: Payload reçu ---\n{review.dict()}")
+    try:
+        payload = jsonable_encoder(review)  # convertit les datetime en iso string
+        payload = clean_date_fields(payload)  # assure que les dates sont en format ISO
+        print(f"--- Payload encodable ---\n{payload}")
+        success = bigquery_service.create_review(payload)
+        if not success:
+            raise HTTPException(status_code=400, detail="Error creating review")
+        return review
+    except Exception as e:
+        print(f"--- EXCEPTION in create_review ---\n{e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
 @app.put("/reviews/{review_id}")
 def update_review(review_id: str, review: ReviewUpdate):
@@ -30,13 +45,6 @@ def update_review(review_id: str, review: ReviewUpdate):
     if not updated_review:
         raise HTTPException(status_code=404, detail="Review not found")
     return updated_review
-
-@app.put("/analysis/{analysis_id}")
-def update_topic_analysis(analysis_id: str, analysis: TopicAnalysisUpdate):
-    updated_analysis = bigquery_service.update_topic_analysis(analysis_id, analysis.dict())
-    if not updated_analysis:
-        raise HTTPException(status_code=404, detail="Analysis not found")
-    return updated_analysis
 
 @app.delete("/reviews/{review_id}")
 def delete_review(review_id: str):
