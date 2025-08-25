@@ -1,3 +1,4 @@
+#Extraction depuis une base de données relationnelle (Azure SQL Database)
 import os
 from dotenv import load_dotenv
 import pyodbc

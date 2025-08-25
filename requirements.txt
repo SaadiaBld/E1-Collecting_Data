@@ -4,3 +4,13 @@ google-cloud-bigquery
 python-dotenv
 tweepy
 pandas
+pyodbc
+fastapi
+pydantic
+azure-identity
+python-dotenv
+azure-storage-blob 
+azure-identity
+pyarrow
+requests
+duckdb

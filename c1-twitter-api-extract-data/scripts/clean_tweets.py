@@ -1,5 +1,18 @@
-import pandas as pd
-import re, string
+import sqlite3
+import re
+import os
+
+# Connect to the database
+db_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'tweets.db')
+conn = sqlite3.connect(db_path)
+cursor = conn.cursor()
+
+# Add the cleaned_text column if it doesn't exist
+try:
+    cursor.execute("ALTER TABLE tweets ADD COLUMN cleaned_text TEXT")
+except sqlite3.OperationalError:
+    # The column already exists
+    pass
 
 #nettoyer les tweets
 def clean_text(tweet):
@@ -31,12 +44,16 @@ def preprocess_tweet(tweet):
     tweet = expand_abbreviations(tweet)
     return tweet
 
-# Charger les tweets depuuis csv
-csv_file = "tweets_leroymerlin_livraison.csv"
-df = pd.read_csv(csv_file, dtype={"ID": str})
+# Fetch tweets that haven't been cleaned yet
+cursor.execute("SELECT id, text FROM tweets WHERE cleaned_text IS NULL")
+rows = cursor.fetchall()
 
-# Ajouter une colonne avec le tweet nettoyé
-df["tweet_nettoye"] = df["Texte"].apply(preprocess_tweet)
+for row in rows:
+    tweet_id, text = row
+    cleaned_text = preprocess_tweet(text)
+    cursor.execute("UPDATE tweets SET cleaned_text = ? WHERE id = ?", (cleaned_text, tweet_id))
 
-# Sauvegarder les deux versions dans un CSV
-df.to_csv("tweets_nettoyes.csv", index=False, encoding="utf-8")
+conn.commit()
+conn.close()
+
+print(f"{len(rows)} tweets cleaned and updated in the database.")

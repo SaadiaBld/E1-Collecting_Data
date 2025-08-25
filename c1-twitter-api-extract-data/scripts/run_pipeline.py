@@ -3,6 +3,9 @@ import subprocess
 
 base_dir = os.path.dirname(os.path.abspath(__file__))
 
+print("Mise en place de la base de données...")
+subprocess.run(["python3", os.path.join(base_dir, "database_setup.py")])
+
 print("Chargement des tweets...")
 subprocess.run(["python3", os.path.join(base_dir, "load_tweets.py")])
 
